@@ -4,4 +4,7 @@
   (lib (name "NUCLEO-L476RG")(type "KiCad")(uri "${KIPRJMOD}/parts/NUCLEO-L476RG/NUCLEO-L476RG.kicad_sym")(options "")(descr ""))
   (lib (name "B2B-PH-K-S")(type "KiCad")(uri "${KIPRJMOD}/parts/B2B_PH_K_S/B2B-PH-K-S.kicad_sym")(options "")(descr "JST Connector"))
   (lib (name "CL_SB_12A_01T")(type "KiCad")(uri "${KIPRJMOD}/parts/CL_SB_12A_01T/KiCADv6/2026-02-01_17-50-13.kicad_sym")(options "")(descr "Slide Switch"))
+  (lib (name "Adafruit_ISM330DHCX")(type "KiCad")(uri "${KIPRJMOD}/parts/Adafruit Gyro/Adafruit_ISM330DHCX.kicad_sym")(options "")(descr ""))
+  (lib (name "Adafruit_SSD1306")(type "KiCad")(uri "${KIPRJMOD}/parts/Adafruit OLED/Adafruit_SSD1306.kicad_sym")(options "")(descr ""))
+  (lib (name "L293DD")(type "KiCad")(uri "${KIPRJMOD}/parts/L293DD/L293DD.kicad_sym")(options "")(descr "H Bridge"))
 )

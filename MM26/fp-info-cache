@@ -1,4 +1,4 @@
-27278073711024713
+27286923615335955
 AZ1117IH_3_3TRG1
 SOT230P700X185-4N
 
@@ -6,6 +6,20 @@ SOT230P700X185-4N
 0
 4
 4
+Adafruit_ISM330DHCX
+ISM330DHCX
+
+
+0
+14
+14
+Adafruit_SSD1306
+SSD1306
+
+
+0
+8
+8
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -20,6 +34,13 @@ audio belton reverb
 0
 7
 7
+B2B_PH_K_S
+JST_B2B-PH-K-S
+
+
+0
+2
+2
 Battery
 BatteryClip_Keystone_54_D16-19mm
 Battery clip for batteries with a diameter between 16-19 mm: https://www.keyelco.com/product.cfm/product_id/826
@@ -2736,6 +2757,13 @@ speaker CUI
 0
 2
 2
+CL_SB_12A_01T
+CL-SB-12A-01T_NDC
+
+CL-SB-12A-01T 
+0
+3
+3
 Calibration_Scale
 Gauge_10mm_Type1_CopperTop
 Gauge, Massstab, 10mm, CopperTop, Type 1,
@@ -73163,6 +73191,13 @@ threaded screw
 0
 4
 1
+NUCLEO-L476RG
+MODULE_NUCLEO-L476RG
+
+
+0
+76
+76
 NetTie
 NetTie-2_SMD_Pad0.5mm
 Net tie, 2 pin, 0.5mm square SMD pads

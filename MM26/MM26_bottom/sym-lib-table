@@ -1,0 +1,9 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "3220_20_0100")(type "KiCad")(uri "C:/Users/james/Documents/Github/Micromouse-2026/MM26/parts/3220_20_0100_00/KiCADv6/2026-02-14_19-07-37.kicad_sym")(options "")(descr ""))
+  (lib (name "Adafruit_ISM330DHCX")(type "KiCad")(uri "C:/Users/james/Documents/Github/Micromouse-2026/MM26/parts/Adafruit Gyro/Adafruit_ISM330DHCX.kicad_sym")(options "")(descr ""))
+  (lib (name "AZ1117IH-3.3TRG1")(type "KiCad")(uri "C:/Users/james/Documents/Github/Micromouse-2026/MM26/parts/AZ1117IH_3_3TRG1/AZ1117IH-3.3TRG1.kicad_sym")(options "")(descr ""))
+  (lib (name "B2B-PH-K-S")(type "KiCad")(uri "C:/Users/james/Documents/Github/Micromouse-2026/MM26/parts/B2B_PH_K_S/B2B-PH-K-S.kicad_sym")(options "")(descr ""))
+  (lib (name "EG1213")(type "KiCad")(uri "C:/Users/james/Documents/Github/Micromouse-2026/MM26/parts/EG1213/EG1213.kicad_sym")(options "")(descr ""))
+  (lib (name "L293DD")(type "KiCad")(uri "C:/Users/james/Documents/Github/Micromouse-2026/MM26/parts/L293DD/L293DD.kicad_sym")(options "")(descr ""))
+)

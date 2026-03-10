@@ -5,13 +5,31 @@
 #define SET_MRB(x) TIM1->CCR3 = x
 #define SET_MRF(x) TIM1->CCR4 = x
 
-
-
-
 void setMotorSpeed(motor side, uint16_t speed, direction dir){
-	/* CCR2 => FORWARD */
-	SET_MLB(0);
-	SET_MLF(30000);
-	SET_MRB(0);
-	SET_MRF(30000);
+	if (side == left)
+	{	if (dir == foward)
+			{ 
+				SET_MLB(0);
+				SET_MLF(speed);
+				
+
+			}
+		if (dir == backward)
+			{
+				SET_MLF(0);
+				SET_MLB(speed);
+			}
+	}
+	if (side == right)
+		{if (dir == foward)
+				{ 	SET_MRB(0);
+					SET_MRF(speed);
+					
+				}
+			if (dir == backward)
+				{
+					SET_MRF(0);
+					SET_MRB(speed);
+				}	
+	}
 }

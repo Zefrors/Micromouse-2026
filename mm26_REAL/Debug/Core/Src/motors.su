@@ -1,1 +1,2 @@
-../Core/Src/motors.c:11:6:setMotorSpeed	16	static
+../Core/Src/motors.c:13:10:getMotorEnc	16	static
+../Core/Src/motors.c:22:6:setMotorSpeed	16	static

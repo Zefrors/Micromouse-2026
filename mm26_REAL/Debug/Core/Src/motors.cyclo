@@ -1,1 +1,2 @@
-../Core/Src/motors.c:11:6:setMotorSpeed	1
+../Core/Src/motors.c:13:10:getMotorEnc	3
+../Core/Src/motors.c:22:6:setMotorSpeed	7

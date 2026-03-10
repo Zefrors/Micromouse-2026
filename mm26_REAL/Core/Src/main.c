@@ -85,6 +85,7 @@ char xline[] = "X: ";
 char yline[] = "Y: ";
 char zline[] = "Z: ";
 char buffer[20];
+uint16_t motor_right_cnt;
 
 /* USER CODE END 0 */
 
@@ -143,6 +144,7 @@ int main(void)
   ssd1306_UpdateScreen();
   while (1)
   {
+	  /*
 	  CUSTOM_MOTION_SENSOR_GetAxes(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO, &acc_value);
 	  CUSTOM_MOTION_SENSOR_GetAxes(CUSTOM_ISM330DHCX_0, MOTION_GYRO, &gyr_value);
 	  ssd1306_SetCursor(0,0);
@@ -161,7 +163,16 @@ int main(void)
 	  itoa((int) gyr_value.z, buffer, (int) 10);
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
 	  ssd1306_UpdateScreen();
-	  setMotorSpeed(left, 1, forward);
+	  setMotorSpeed(right, (uint16_t) 65535*.5, back);
+	  setMotorSpeed(left, (uint16_t) 65535*.5, back);
+	*/
+	  motor_right_cnt = getMotorEnc(right);
+	  ssd1306_SetCursor(0,0);
+	  //ret = ssd1306_WriteString(xline, Font_7x10, White);
+	  //memset(buffer,0,sizeof(buffer));
+	  itoa((int) motor_right_cnt, buffer, (int) 10);
+	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
+	  ssd1306_UpdateScreen();
 	  HAL_Delay(50);
     /* USER CODE END WHILE */
 

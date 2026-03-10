@@ -1,0 +1,4 @@
+../Core/Src/itoa.c:66:14:itoa	24	static
+../Core/Src/itoa.c:71:14:ltoa	80	static
+../Core/Src/itoa.c:119:14:utoa	24	static
+../Core/Src/itoa.c:127:14:ultoa	80	static

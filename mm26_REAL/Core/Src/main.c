@@ -25,6 +25,7 @@
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
 #include "itoa.h"
+#include "motors.h"
 
 /* USER CODE END Includes */
 
@@ -123,10 +124,14 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   ssd1306_Init();
-
   CUSTOM_MOTION_SENSOR_Init(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO|MOTION_GYRO);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+  // PWM SETUP
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 //ssd1306_DrawPixel(1, 1, White);
 
   /* USER CODE END 2 */
@@ -156,6 +161,7 @@ int main(void)
 	  itoa((int) gyr_value.z, buffer, (int) 10);
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
 	  ssd1306_UpdateScreen();
+	  setMotorSpeed(left, 1, forward);
 	  HAL_Delay(50);
     /* USER CODE END WHILE */
 
@@ -314,10 +320,6 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_OC_Init(&htim1) != HAL_OK)
-  {
-    Error_Handler();
-  }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
@@ -344,8 +346,7 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  sConfigOC.OCMode = TIM_OCMODE_TIMING;
-  if (HAL_TIM_OC_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
   }

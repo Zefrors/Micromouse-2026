@@ -1,7 +1,5 @@
-Core/Src/ssd1306_fonts.o: ../Core/Src/ssd1306_fonts.c \
- C:/Users/james/Documents/micromouse/mm26_REAL/OLED/ssd1306_fonts.h \
- C:/Users/james/Documents/micromouse/mm26_REAL/OLED/ssd1306.h \
- C:/Users/james/Documents/micromouse/mm26_REAL/OLED/ssd1306_conf.h \
+Core/Src/systick.o: ../Core/Src/systick.c ../Core/Inc/systick.h \
+ ../Core/Inc/motors.h ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h \
  ../Core/Inc/stm32l4xx_hal_conf.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_rcc.h \
@@ -35,9 +33,9 @@ Core/Src/ssd1306_fonts.o: ../Core/Src/ssd1306_fonts.c \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h
-C:/Users/james/Documents/micromouse/mm26_REAL/OLED/ssd1306_fonts.h:
-C:/Users/james/Documents/micromouse/mm26_REAL/OLED/ssd1306.h:
-C:/Users/james/Documents/micromouse/mm26_REAL/OLED/ssd1306_conf.h:
+../Core/Inc/systick.h:
+../Core/Inc/motors.h:
+../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
 ../Core/Inc/stm32l4xx_hal_conf.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_rcc.h:

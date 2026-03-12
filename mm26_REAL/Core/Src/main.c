@@ -144,6 +144,16 @@ int main(void)
   ssd1306_UpdateScreen();
   while (1)
   {
+	  ssd1306_SetCursor(0,0);
+	  itoa((int) getMotorEnc(right), buffer, (int) 10);
+	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
+	  memset(buffer,0,sizeof(buffer));
+	  ssd1306_SetCursor(0,10);
+	  itoa((int) getMotorEnc(left), buffer, (int) 10);
+	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
+	  memset(buffer,0,sizeof(buffer));
+	  ssd1306_UpdateScreen();
+
 	  /*
 	  CUSTOM_MOTION_SENSOR_GetAxes(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO, &acc_value);
 	  CUSTOM_MOTION_SENSOR_GetAxes(CUSTOM_ISM330DHCX_0, MOTION_GYRO, &gyr_value);
@@ -166,14 +176,9 @@ int main(void)
 	  setMotorSpeed(right, (uint16_t) 65535*.5, back);
 	  setMotorSpeed(left, (uint16_t) 65535*.5, back);
 	*/
-	  motor_right_cnt = getMotorEnc(right);
-	  ssd1306_SetCursor(0,0);
-	  //ret = ssd1306_WriteString(xline, Font_7x10, White);
-	  //memset(buffer,0,sizeof(buffer));
-	  itoa((int) motor_right_cnt, buffer, (int) 10);
-	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
-	  ssd1306_UpdateScreen();
-	  HAL_Delay(50);
+	  //setMotorSpeed(right, (uint16_t) 65535, back);
+	  //setMotorSpeed(left, (uint16_t) 65535, back);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

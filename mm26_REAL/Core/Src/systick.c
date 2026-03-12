@@ -25,8 +25,10 @@ void encoder_reset(){
 
 void sysTick(){
 	// this gets called every time the systick interrupt happens!
-	if (getMotorEnc(right) == 20000 || getMotorEnc(left) == 20000)
+	if (getMotorEnc(right) > 20000 || getMotorEnc(left) > 20000)
 		encoder_reset();
+	if (getMotorEnc(right) < -20000 || getMotorEnc(left) < 20000)
+				encoder_reset();
 	int16_t error = (int16_t) getMotorEnc(right) - (int16_t) getMotorEnc(left);
 	int16_t motorOff = error * kP + (error-prevError) * kD;
 	setMotorSpeed(right, BASE_SPEED-motorOff, forward);

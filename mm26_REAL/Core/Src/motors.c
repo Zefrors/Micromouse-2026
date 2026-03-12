@@ -10,7 +10,13 @@
 
 #define INT_16_MAX 100
 
-uint16_t getMotorEnc(motor side){
+void setMotorEnc(motor side, int16_t encVal){
+	GET_MR_ENC() = nm;
+	GET_ML_ENC() = nm;
+
+}
+
+int16_t getMotorEnc(motor side){
 	switch(side){
 		case(right): {return GET_MR_ENC();}
 		case(left): {return GET_ML_ENC();}

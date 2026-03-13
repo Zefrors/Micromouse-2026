@@ -1,1 +1,2 @@
-../Core/Src/systick.c:14:6:sysTick	1
+../Core/Src/systick.c:17:6:encoder_reset	1
+../Core/Src/systick.c:26:6:sysTick	3

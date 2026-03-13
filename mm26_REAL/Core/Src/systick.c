@@ -9,7 +9,7 @@
 #include "systick.h"
 #include "motors.h"
 #define BASE_SPEED 35000
-#define kP 1000
+#define kP 150
 #define kD 0
 
 int16_t prevError = 0;
@@ -17,10 +17,10 @@ int16_t prevError = 0;
 void encoder_reset(){
 	// If Encoder is close to limit (30k) Reset and keep track of differnece 
 	// Take difference between right encoder and left
-	diff = getMotorEnc(right) - getMotorEnc(left) 
+	int16_t diff = getMotorEnc(right) - getMotorEnc(left);
 	// Set right encoder to diff and left to 0 as to keep the same difference before reset
-	setMotorEnc(right) = diff;
-	setMotorEnc(left) = 0;
+	setMotorEnc(right, diff);
+	setMotorEnc(left, 0);
 }
 
 void sysTick(){

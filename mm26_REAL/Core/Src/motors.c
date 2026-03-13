@@ -11,8 +11,8 @@
 #define INT_16_MAX 100
 
 void setMotorEnc(motor side, int16_t encVal){
-	GET_MR_ENC() = nm;
-	GET_ML_ENC() = nm;
+	GET_MR_ENC() = encVal;
+	GET_ML_ENC() = encVal;
 
 }
 

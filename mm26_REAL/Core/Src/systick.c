@@ -5,9 +5,9 @@
  *      Author: james
  */
 
-
-#include "systick.h"
 #include "motors.h"
+#include "systick.h"
+#include "main.h"
 #define BASE_SPEED 35000
 #define kP 150
 #define kD 0
@@ -25,6 +25,9 @@ void encoder_reset(){
 
 void sysTick(){
 	// this gets called every time the systick interrupt happens!
+	//gyro stuff!
+	//updateGyro();
+	/*
 	if (getMotorEnc(right) > 20000 || getMotorEnc(left) > 20000)
 		encoder_reset();
 	if (getMotorEnc(right) < -20000 || getMotorEnc(left) < 20000)
@@ -34,4 +37,5 @@ void sysTick(){
 	setMotorSpeed(right, BASE_SPEED-motorOff, forward);
 	setMotorSpeed(left, BASE_SPEED+motorOff, forward);
 	prevError = error;
+	*/
 }

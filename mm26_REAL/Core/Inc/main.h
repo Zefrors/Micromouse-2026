@@ -55,7 +55,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+ADC_HandleTypeDef* Get_HADC1_Ptr(void);
+void updateGyro();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -65,8 +66,8 @@ void Error_Handler(void);
 #define OLED_DC_GPIO_Port GPIOC
 #define OLED_MOSI_Pin GPIO_PIN_3
 #define OLED_MOSI_GPIO_Port GPIOC
-#define ENC1_A_Pin GPIO_PIN_0
-#define ENC1_A_GPIO_Port GPIOA
+#define IR_IN_L_DIAG_Pin GPIO_PIN_0
+#define IR_IN_L_DIAG_GPIO_Port GPIOA
 #define ENC1_B_Pin GPIO_PIN_1
 #define ENC1_B_GPIO_Port GPIOA
 #define USART_TX_Pin GPIO_PIN_2
@@ -81,20 +82,18 @@ void Error_Handler(void);
 #define ENC2_B_GPIO_Port GPIOA
 #define ENC2_A_Pin GPIO_PIN_7
 #define ENC2_A_GPIO_Port GPIOA
-#define IR_OUT_4_Pin GPIO_PIN_4
-#define IR_OUT_4_GPIO_Port GPIOC
-#define IR_OUT_1_Pin GPIO_PIN_1
-#define IR_OUT_1_GPIO_Port GPIOB
-#define IR_OUT_2_Pin GPIO_PIN_2
-#define IR_OUT_2_GPIO_Port GPIOB
+#define IR_IN_R_DIAG_Pin GPIO_PIN_4
+#define IR_IN_R_DIAG_GPIO_Port GPIOC
+#define IR_IN_LEFT_Pin GPIO_PIN_5
+#define IR_IN_LEFT_GPIO_Port GPIOC
+#define IR_IN_FRONT_Pin GPIO_PIN_0
+#define IR_IN_FRONT_GPIO_Port GPIOB
+#define IR_IN_R_Pin GPIO_PIN_1
+#define IR_IN_R_GPIO_Port GPIOB
 #define OLED_CS_Pin GPIO_PIN_12
 #define OLED_CS_GPIO_Port GPIOB
 #define OLED_SCK_Pin GPIO_PIN_13
 #define OLED_SCK_GPIO_Port GPIOB
-#define IR_OUT_4B14_Pin GPIO_PIN_14
-#define IR_OUT_4B14_GPIO_Port GPIOB
-#define IR_OUT_3_Pin GPIO_PIN_15
-#define IR_OUT_3_GPIO_Port GPIOB
 #define OLED_RST_Pin GPIO_PIN_8
 #define OLED_RST_GPIO_Port GPIOC
 #define M2_CC_Pin GPIO_PIN_8
@@ -109,6 +108,8 @@ void Error_Handler(void);
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
+#define ENC1_A_Pin GPIO_PIN_15
+#define ENC1_A_GPIO_Port GPIOA
 #define Gyro_SCK_Pin GPIO_PIN_10
 #define Gyro_SCK_GPIO_Port GPIOC
 #define Gyro_MISO_Pin GPIO_PIN_11

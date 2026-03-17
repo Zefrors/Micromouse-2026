@@ -25,8 +25,11 @@
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
 #include "itoa.h"
+#include "ftoa.h"
 #include "motors.h"
-
+#include "delay.h"
+#include "irs.h"
+#include "motion_gc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -36,7 +39,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define SAMPLE_FREQUENCY 500.0f
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -45,6 +48,9 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
+
 CRC_HandleTypeDef hcrc;
 
 SPI_HandleTypeDef hspi2;
@@ -52,6 +58,7 @@ SPI_HandleTypeDef hspi2;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
@@ -70,6 +77,8 @@ static void MX_SPI2_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_ADC1_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 
@@ -77,6 +86,7 @@ static void MX_TIM3_Init(void);
 /* USER CODE BEGIN 0 */
 CUSTOM_MOTION_SENSOR_Axes_t gyr_value;
 CUSTOM_MOTION_SENSOR_Axes_t acc_value;
+CUSTOM_MOTION_SENSOR_AxesRaw_t gyr_raw;
 int16_t left_counts = 0;
 int16_t right_counts = 0;
 char ret;
@@ -84,9 +94,23 @@ char salutations[] = "HI!";
 char xline[] = "X: ";
 char yline[] = "Y: ";
 char zline[] = "Z: ";
+char empty[] = "                ";
 char buffer[20];
+int32_t x_vals[1000];
+uint16_t x_cnt;
+int32_t x_avg;
+int32_t x_sum;
+double x_pos = 0;
 uint16_t motor_right_cnt;
-
+uint16_t IR_VALUE;
+uint16_t debug;
+MGC_knobs_t knobs;
+MGC_output_t start_gyro_bias;
+float sample_freq = SAMPLE_FREQUENCY;
+volatile float gyro_cal_x, gyro_cal_y, gyro_cal_z;
+MGC_input_t data_in;
+MGC_output_t data_out;
+int bias_update = 0;
 /* USER CODE END 0 */
 
 /**
@@ -123,9 +147,16 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_ADC1_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   ssd1306_Init();
-  CUSTOM_MOTION_SENSOR_Init(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO|MOTION_GYRO);
+  CUSTOM_MOTION_SENSOR_Init(CUSTOM_ISM330DHCX_0, MOTION_GYRO);
+  CUSTOM_MOTION_SENSOR_Enable(CUSTOM_ISM330DHCX_0, MOTION_GYRO);
+  CUSTOM_MOTION_SENSOR_Init(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO);
+  CUSTOM_MOTION_SENSOR_Enable(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO);
+  CUSTOM_MOTION_SENSOR_SetOutputDataRate(CUSTOM_ISM330DHCX_0, MOTION_GYRO, (float_t) sample_freq);
+
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   // PWM SETUP
@@ -133,6 +164,21 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+  HAL_TIM_Base_Start_IT(&htim4);
+  __HAL_TIM_CLEAR_FLAG(&htim4, TIM_FLAG_UPDATE);
+  Delay_Init();
+  // GYRO INIT
+  MotionGC_Initialize(MGC_MCU_STM32, &sample_freq);
+  MotionGC_GetKnobs(&knobs);
+  knobs.AccThr = 0.008f;
+  knobs.GyroThr = 0.15;
+  MotionGC_SetKnobs(&knobs);
+  start_gyro_bias.GyroBiasX = 0;
+  start_gyro_bias.GyroBiasY = 0;
+  start_gyro_bias.GyroBiasZ = 0;
+  MotionGC_SetCalParams(&start_gyro_bias);
+  //sample_freq = SAMPLE_FREQUENCY;
+  MotionGC_SetFrequency(&sample_freq);
 //ssd1306_DrawPixel(1, 1, White);
 
   /* USER CODE END 2 */
@@ -142,8 +188,10 @@ int main(void)
   ssd1306_SetCursor(0,0);
   ret = ssd1306_WriteString(salutations, Font_7x10, White);
   ssd1306_UpdateScreen();
+  //HAL_Delay(1000);
   while (1)
   {
+	  /*
 	  ssd1306_SetCursor(0,0);
 	  itoa((int) getMotorEnc(right), buffer, (int) 10);
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
@@ -153,29 +201,61 @@ int main(void)
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
 	  memset(buffer,0,sizeof(buffer));
 	  ssd1306_UpdateScreen();
+	  setMotorSpeed(right, 10000, forward);
+	  */
 
 	  /*
-	  CUSTOM_MOTION_SENSOR_GetAxes(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO, &acc_value);
-	  CUSTOM_MOTION_SENSOR_GetAxes(CUSTOM_ISM330DHCX_0, MOTION_GYRO, &gyr_value);
+	  ssd1306_SetCursor(0,0);
+	  ret = ssd1306_WriteString(empty, Font_7x10, White);
+	  ssd1306_SetCursor(0,0);
+	  itoa(IR_VALUE, buffer, (int) 10);
+	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
+	  IR_VALUE = analogRead(IR_FRONT);
+	  ssd1306_UpdateScreen();
+	  */
+
+	//setMotorSpeed(left, 10000, back);
+
+
+	  /*
+	  for (int i = 0; i < 500; i++){
+		  x_avg += x_vals[i];
+	  }
+	  */
+	  ssd1306_SetCursor(0,0);
+	  ret = ssd1306_WriteString(empty, Font_7x10, White);
 	  ssd1306_SetCursor(0,0);
 	  ret = ssd1306_WriteString(xline, Font_7x10, White);
-	  memset(buffer,0,sizeof(buffer));
-	  itoa((int) gyr_value.x, buffer, (int) 10);
+	  ftoa(x_pos, buffer, (int) 10);
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
+	  ssd1306_UpdateScreen();
+	  ssd1306_SetCursor(0,10);
+	  ret = ssd1306_WriteString(empty, Font_7x10, White);
+	  ssd1306_SetCursor(0,10);
+	  itoa((int) bias_update, buffer, (int) 10);
+	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
+	  HAL_Delay(10);
+	  /*
+	  ssd1306_SetCursor(0,10);
+	  ret = ssd1306_WriteString(empty, Font_7x10, White);
 	  ssd1306_SetCursor(0,10);
 	  ret = ssd1306_WriteString(yline, Font_7x10, White);
 	  memset(buffer,0,sizeof(buffer));
 	  itoa((int) gyr_value.y, buffer, (int) 10);
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
 	  ssd1306_SetCursor(0,20);
+	  ret = ssd1306_WriteString(empty, Font_7x10, White);
+	  ssd1306_SetCursor(0,20);
 	  ret = ssd1306_WriteString(zline, Font_7x10, White);
 	  memset(buffer,0,sizeof(buffer));
 	  itoa((int) gyr_value.z, buffer, (int) 10);
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
 	  ssd1306_UpdateScreen();
-	  setMotorSpeed(right, (uint16_t) 65535*.5, back);
-	  setMotorSpeed(left, (uint16_t) 65535*.5, back);
-	*/
+	  */
+	  //HAL_Delay(10);
+	  //setMotorSpeed(right, (uint16_t) 65535*.5, back);
+	  //setMotorSpeed(left, (uint16_t) 65535*.5, back);
+
 	  //setMotorSpeed(right, (uint16_t) 65535, back);
 	  //setMotorSpeed(left, (uint16_t) 65535, back);
 
@@ -233,6 +313,73 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_MultiModeTypeDef multimode = {0};
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+
+  /** Common config
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc1.Init.LowPowerAutoWait = DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
+  hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+  hadc1.Init.OversamplingMode = DISABLE;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure the ADC multi-mode
+  */
+  multimode.Mode = ADC_MODE_INDEPENDENT;
+  if (HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_16;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
@@ -328,7 +475,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 65535;
+  htim1.Init.Period = 3199;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -487,6 +634,51 @@ static void MX_TIM3_Init(void)
 }
 
 /**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 3;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 39999;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -529,11 +721,15 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
   /* DMA1_Channel6_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+  /* DMA2_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Channel3_IRQn);
 
 }
 
@@ -587,18 +783,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : IR_OUT_4_Pin */
-  GPIO_InitStruct.Pin = IR_OUT_4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(IR_OUT_4_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : IR_OUT_1_Pin IR_OUT_2_Pin IR_OUT_4B14_Pin IR_OUT_3_Pin */
-  GPIO_InitStruct.Pin = IR_OUT_1_Pin|IR_OUT_2_Pin|IR_OUT_4B14_Pin|IR_OUT_3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
   /*Configure GPIO pin : OLED_CS_Pin */
   GPIO_InitStruct.Pin = OLED_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -612,7 +796,44 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+ADC_HandleTypeDef* Get_HADC1_Ptr(void)
+{
+    return &hadc1;
+}
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
+	//debug = HAL_GetTick();
+	if (htim->Instance == TIM4){
+		updateGyro();
+	}
+	 __HAL_TIM_CLEAR_FLAG(&htim4, TIM_FLAG_UPDATE);
+	//while (TIM4->SR  != 0x0);
+}
+
+void updateGyro(){
+	// Get acceleration X/Y/Z in g
+	//MEMS_Read_AccValue(&data_in.Acc[0], &data_in.Acc[1], &data_in.Acc[2]);
+	//CUSTOM_MOTION_SENSOR_GetAxes(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO, &acc_value);
+	CUSTOM_MOTION_SENSOR_GetAxes(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO, &acc_value);
+	data_in.Acc[0] = (float) acc_value.x / 1000;
+	data_in.Acc[1] = (float) acc_value.y / 1000;
+	data_in.Acc[2] = (float) acc_value.z / 1000;
+	// Get angular rate X/Y/Z in dps
+	CUSTOM_MOTION_SENSOR_GetAxesRaw(CUSTOM_ISM330DHCX_0, MOTION_GYRO, &gyr_raw);
+	data_in.Gyro[0] = (float) gyr_raw.x * 8.75 / 1000;
+	data_in.Gyro[1] = (float) gyr_raw.y * 8.75 / 1000;
+	data_in.Gyro[2] = (float) gyr_raw.z * 8.75 / 1000;
+
+	//MEMS_Read_GyroValue(&data_in.Gyro[0], &data_in.Gyro[1], &data_in.Gyro[2]);
+	// Gyroscope calibration algorithm update
+	MotionGC_Update(&data_in, &data_out, &bias_update);
+	// Apply correction
+	gyro_cal_x = (data_in.Gyro)[0] - data_out.GyroBiasX;
+	gyro_cal_y = (data_in.Gyro)[1] - data_out.GyroBiasY;
+	gyro_cal_z = (data_in.Gyro)[2] - data_out.GyroBiasZ;
+	x_pos += gyro_cal_x * 0.002;
+
+}
 /* USER CODE END 4 */
 
 /**

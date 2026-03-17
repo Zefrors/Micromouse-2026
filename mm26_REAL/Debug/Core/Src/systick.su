@@ -1,2 +1,2 @@
 ../Core/Src/systick.c:17:6:encoder_reset	24	static
-../Core/Src/systick.c:26:6:sysTick	24	static
+../Core/Src/systick.c:26:6:sysTick	4	static

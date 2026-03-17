@@ -18,6 +18,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_dma.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_cortex.h \
+ ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_adc.h \
+ ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_adc.h \
+ ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_adc_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_crc.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_crc_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_exti.h \
@@ -41,7 +44,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/BSP/Components/ism330dhcx/ism330dhcx.h \
  ../Drivers/BSP/Components/ism330dhcx/ism330dhcx_reg.h ../OLED/ssd1306.h \
  ../OLED/ssd1306_conf.h ../OLED/ssd1306_fonts.h ../OLED/ssd1306.h \
- ../Core/Inc/itoa.h ../Core/Inc/motors.h ../Core/Inc/main.h
+ ../Core/Inc/itoa.h ../Core/Inc/ftoa.h ../Core/Inc/motors.h \
+ ../Core/Inc/main.h ../Core/Inc/delay.h ../Core/Inc/irs.h \
+ C:/Users/james/Documents/micromouse/mm26_REAL/Middlewares/ST/STM32_MotionGC_Library/Inc/motion_gc.h
 ../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
 ../Core/Inc/stm32l4xx_hal_conf.h:
@@ -62,6 +67,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_dma.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_dma.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_cortex.h:
+../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_adc.h:
+../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_ll_adc.h:
+../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_adc_ex.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_crc.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_crc_ex.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_exti.h:
@@ -90,5 +98,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../OLED/ssd1306_fonts.h:
 ../OLED/ssd1306.h:
 ../Core/Inc/itoa.h:
+../Core/Inc/ftoa.h:
 ../Core/Inc/motors.h:
 ../Core/Inc/main.h:
+../Core/Inc/delay.h:
+../Core/Inc/irs.h:
+C:/Users/james/Documents/micromouse/mm26_REAL/Middlewares/ST/STM32_MotionGC_Library/Inc/motion_gc.h:

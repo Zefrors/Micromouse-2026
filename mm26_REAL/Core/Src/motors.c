@@ -8,12 +8,13 @@
 #define GET_MR_ENC() TIM2->CNT
 #define GET_ML_ENC() TIM3->CNT
 
-#define INT_16_MAX 100
-
 void setMotorEnc(motor side, int16_t encVal){
-	GET_MR_ENC() = encVal;
-	GET_ML_ENC() = encVal;
-
+	if (side == right){
+		GET_MR_ENC() = encVal;
+	}
+	if (side == left){
+		GET_ML_ENC() = encVal;
+	}
 }
 
 int16_t getMotorEnc(motor side){

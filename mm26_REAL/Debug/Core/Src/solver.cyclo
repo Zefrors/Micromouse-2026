@@ -1,0 +1,12 @@
+../Core/Src/solver.c:29:8:solver	1
+../Core/Src/solver.c:33:8:leftWallFollower	3
+../Core/Src/solver.c:42:6:recomputeFlood	12
+../Core/Src/solver.c:77:6:displayFlood	3
+../Core/Src/solver.c:86:6:floodToCenter	1
+../Core/Src/solver.c:93:6:floodToStart	1
+../Core/Src/solver.c:101:6:updatePosition	5
+../Core/Src/solver.c:109:6:updateDirLeft	1
+../Core/Src/solver.c:110:6:updateDirRight	1
+../Core/Src/solver.c:113:5:neighborValue	10
+../Core/Src/solver.c:125:5:senseWalls	24
+../Core/Src/solver.c:167:8:floodFill	25

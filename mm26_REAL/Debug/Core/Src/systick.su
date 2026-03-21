@@ -1,2 +1,9 @@
-../Core/Src/systick.c:17:6:encoder_reset	24	static
-../Core/Src/systick.c:26:6:sysTick	4	static
+../Core/Src/systick.c:40:6:encoder_reset	24	static
+../Core/Src/systick.c:50:6:encoder_reset_straight	24	static
+../Core/Src/systick.c:58:6:moveOne	24	static
+../Core/Src/systick.c:65:6:setPIDGoals	24	static
+../Core/Src/systick.c:80:6:center	24	static
+../Core/Src/systick.c:86:6:turnRight	32	static
+../Core/Src/systick.c:103:6:turnLeft	32	static
+../Core/Src/systick.c:119:6:pid	32	static
+../Core/Src/systick.c:189:6:sysTick	4	static

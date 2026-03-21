@@ -30,6 +30,10 @@
 #include "delay.h"
 #include "irs.h"
 #include "motion_gc.h"
+#include "motion_fx.h"
+#include "motion_ac.h"
+#include "solver.h"
+#include "systick.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,7 +43,12 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define SAMPLE_FREQUENCY 500.0f
+#define MFX_STR_LENG 35
+#define STATE_SIZE (size_t)(2450)
+#define ENABLE_6X 1
+#define SAMPLE_FREQUENCY 416.0f
+#define ACCEL_SENSITIVITY 0.488f
+#define GYRO_SENSITIVITY 70.0f
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,19 +59,14 @@
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
-
 CRC_HandleTypeDef hcrc;
-
 SPI_HandleTypeDef hspi2;
-
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
-
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
-
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -87,13 +91,14 @@ static void MX_TIM4_Init(void);
 CUSTOM_MOTION_SENSOR_Axes_t gyr_value;
 CUSTOM_MOTION_SENSOR_Axes_t acc_value;
 CUSTOM_MOTION_SENSOR_AxesRaw_t gyr_raw;
+CUSTOM_MOTION_SENSOR_AxesRaw_t acc_raw;
 int16_t left_counts = 0;
 int16_t right_counts = 0;
 char ret;
 char salutations[] = "HI!";
-char xline[] = "X: ";
-char yline[] = "Y: ";
-char zline[] = "Z: ";
+char xline[] = "FRONT: ";
+char yline[] = "LEFT: ";
+char zline[] = "RIGHT: ";
 char empty[] = "                ";
 char buffer[20];
 int32_t x_vals[1000];
@@ -104,6 +109,7 @@ double x_pos = 0;
 uint16_t motor_right_cnt;
 uint16_t IR_VALUE;
 uint16_t debug;
+// motion gc
 MGC_knobs_t knobs;
 MGC_output_t start_gyro_bias;
 float sample_freq = SAMPLE_FREQUENCY;
@@ -111,6 +117,31 @@ volatile float gyro_cal_x, gyro_cal_y, gyro_cal_z;
 MGC_input_t data_in;
 MGC_output_t data_out;
 int bias_update = 0;
+// other stuff
+int16_t error;
+int16_t enc;
+//motion fx
+static uint8_t mfxstate[STATE_SIZE];
+MFX_knobs_t iKnobs;
+// motion ac
+MAC_knobs_t acc_knobs;
+MAC_output_t start_acc_bias;
+volatile float acc_cal_x, acc_cal_y, acc_cal_z;
+MAC_input_t acc_data_in;
+MAC_output_t acc_data_out;
+uint8_t acc_bias_update = 0;
+uint32_t CurrentTime, LastTime;
+unsigned int calData[50];
+MFX_input_t mfx_data_in;
+MFX_output_t mfx_data_out;
+float *q; /* Quaternion pointer to either to Game Rotation or Rotation vector (4 length) */
+int32_t ret1, ret2, ret3;
+int calibrating = 1;
+float straight_angle;
+float str_sum;
+int n_str;
+int is_cal_str;
+uint16_t ir_f, ir_l, ir_r;
 /* USER CODE END 0 */
 
 /**
@@ -151,12 +182,11 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   ssd1306_Init();
-  CUSTOM_MOTION_SENSOR_Init(CUSTOM_ISM330DHCX_0, MOTION_GYRO);
-  CUSTOM_MOTION_SENSOR_Enable(CUSTOM_ISM330DHCX_0, MOTION_GYRO);
-  CUSTOM_MOTION_SENSOR_Init(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO);
-  CUSTOM_MOTION_SENSOR_Enable(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO);
-  CUSTOM_MOTION_SENSOR_SetOutputDataRate(CUSTOM_ISM330DHCX_0, MOTION_GYRO, (float_t) sample_freq);
-
+  CUSTOM_MOTION_SENSOR_Init(CUSTOM_ISM330DHCX_0, MOTION_GYRO | MOTION_ACCELERO);
+  CUSTOM_MOTION_SENSOR_SetOutputDataRate(CUSTOM_ISM330DHCX_0, MOTION_GYRO | MOTION_ACCELERO, (float_t) 416);
+  CUSTOM_MOTION_SENSOR_SetFullScale(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO, 16);
+  CUSTOM_MOTION_SENSOR_SetFullScale(CUSTOM_ISM330DHCX_0, MOTION_GYRO, 2000);
+  CUSTOM_MOTION_SENSOR_Enable(CUSTOM_ISM330DHCX_0, MOTION_GYRO | MOTION_ACCELERO);
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   // PWM SETUP
@@ -168,6 +198,7 @@ int main(void)
   __HAL_TIM_CLEAR_FLAG(&htim4, TIM_FLAG_UPDATE);
   Delay_Init();
   // GYRO INIT
+  /*
   MotionGC_Initialize(MGC_MCU_STM32, &sample_freq);
   MotionGC_GetKnobs(&knobs);
   knobs.AccThr = 0.008f;
@@ -179,8 +210,34 @@ int main(void)
   MotionGC_SetCalParams(&start_gyro_bias);
   //sample_freq = SAMPLE_FREQUENCY;
   MotionGC_SetFrequency(&sample_freq);
+  */
+  // motion fx
+  if (STATE_SIZE < MotionFX_GetStateSize())
+  {
+	  Error_Handler();
+  }
+  MotionFX_initialize(mfxstate);
+  MotionFX_getKnobs(mfxstate, &iKnobs);
+  iKnobs.gbias_gyro_th_sc = 0.01;
+  iKnobs.gbias_acc_th_sc = 0.005;
+  iKnobs.LMode = 1;
+  MotionFX_setKnobs(mfxstate, &iKnobs);
+  MotionFX_enable_6X(mfxstate, MFX_ENGINE_DISABLE);
+  MotionFX_enable_9X(mfxstate, MFX_ENGINE_DISABLE);
+  // motionac
+  /*
+  __HAL_RCC_CRC_CLK_ENABLE();
+  MotionAC_Initialize(1);
+  MotionAC_GetKnobs(&acc_knobs);
+  acc_knobs.Sample_ms = sample_freq;
+  (void)MotionAC_SetKnobs(&acc_knobs);
+  */
 //ssd1306_DrawPixel(1, 1, White);
-
+  while(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13)){}
+  if (ENABLE_6X == 1)
+  {
+	  MotionFX_enable_6X(mfxstate, MFX_ENGINE_ENABLE);
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -188,9 +245,46 @@ int main(void)
   ssd1306_SetCursor(0,0);
   ret = ssd1306_WriteString(salutations, Font_7x10, White);
   ssd1306_UpdateScreen();
-  //HAL_Delay(1000);
+  HAL_Delay(20000);
+  setMotorSpeed(right, 2500, back);
+  setMotorSpeed(left, 2500, back);
+  HAL_Delay(1000);
+  setMotorSpeed(right, 0, back);
+  setMotorSpeed(left, 0, back);
+  is_cal_str = 1;
+  HAL_Delay(100);
+  straight_angle = str_sum / n_str;
+  str_sum = 0;
+  n_str = 0;
+  is_cal_str = 0;
+  calibrating = 0;
+  HAL_Delay(2400);
+  center(straight_angle);
+  HAL_Delay(2500);
+  straight_angle += 90;
+  if (straight_angle > 360)
+	  straight_angle -= 360;
+  HAL_Delay(2500);
+  moveOne(straight_angle);
   while (1)
   {
+	  // SOLVER CODE BEGIN
+	  switch(floodFill()){
+		  case(IDLE): {break;}
+		  case(FORWARD): {moveOne(straight_angle); break;}
+		  case(LEFT): {turnLeft(straight_angle); straight_angle += 90; break;}
+		  case(RIGHT): {turnRight(straight_angle); straight_angle -= 90; break;}
+	  }
+	  if (straight_angle > 360){
+		  straight_angle -= 360;
+	  }
+	  else if (straight_angle < -360){
+		  straight_angle += 360;
+	  }
+	  HAL_Delay(2000);
+	  // SOLVER CODE END
+
+	  //moveOne(straight_angle);
 	  /*
 	  ssd1306_SetCursor(0,0);
 	  itoa((int) getMotorEnc(right), buffer, (int) 10);
@@ -222,19 +316,47 @@ int main(void)
 		  x_avg += x_vals[i];
 	  }
 	  */
+	  /*
+	  ir_f = analogRead(IR_FRONT);
+	  ir_l = analogRead(IR_LEFT);
+	  ir_r = analogRead(IR_RIGHT);
+
+	  i++;
 	  ssd1306_SetCursor(0,0);
 	  ret = ssd1306_WriteString(empty, Font_7x10, White);
 	  ssd1306_SetCursor(0,0);
 	  ret = ssd1306_WriteString(xline, Font_7x10, White);
-	  ftoa(x_pos, buffer, (int) 10);
+	  //ftoa((float) (mfx_data_out.rotation)[0], buffer, (int) 10);
+	  //ftoa(iKnobs.gbias_gyro_th_sc, buffer, (int) 10);
+	  itoa(ir_f, buffer, (int) 10);
+
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
-	  ssd1306_UpdateScreen();
+
 	  ssd1306_SetCursor(0,10);
 	  ret = ssd1306_WriteString(empty, Font_7x10, White);
 	  ssd1306_SetCursor(0,10);
-	  itoa((int) bias_update, buffer, (int) 10);
+	  ret = ssd1306_WriteString(yline, Font_7x10, White);
+	  //ftoa(error, buffer, (int) 10);
+	  //itoa((getMotorEnc(right) + getMotorEnc(left))/2, buffer, (int) 10);
+	  itoa(ir_l, buffer, (int) 10);
+
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
-	  HAL_Delay(10);
+
+	  ssd1306_SetCursor(0,20);
+	  ret = ssd1306_WriteString(empty, Font_7x10, White);
+	  ssd1306_SetCursor(0,20);
+	  ret = ssd1306_WriteString(zline, Font_7x10, White);
+	  itoa(ir_r, buffer, (int) 10);
+	  //ftoa(straight_angle, buffer, (int) 10);
+	  //ftoa((mfx_data_out.rotation)[2], buffer, (int) 10);
+	  //ftoa((float) gyr_raw.z  / 8650, buffer, (int) 10);
+	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
+
+
+	  ssd1306_UpdateScreen();
+	  */
+	  //HAL_Delay(2500);
+
 	  /*
 	  ssd1306_SetCursor(0,10);
 	  ret = ssd1306_WriteString(empty, Font_7x10, White);
@@ -556,10 +678,10 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
+  htim2.Init.Period = 65535;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -608,7 +730,7 @@ static void MX_TIM3_Init(void)
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -654,7 +776,7 @@ static void MX_TIM4_Init(void)
   htim4.Instance = TIM4;
   htim4.Init.Prescaler = 3;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 39999;
+  htim4.Init.Period = 49999;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -810,29 +932,53 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 	//while (TIM4->SR  != 0x0);
 }
 
+void updateError(int16_t e){
+	error = e;
+}
+
 void updateGyro(){
-	// Get acceleration X/Y/Z in g
-	//MEMS_Read_AccValue(&data_in.Acc[0], &data_in.Acc[1], &data_in.Acc[2]);
-	//CUSTOM_MOTION_SENSOR_GetAxes(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO, &acc_value);
-	CUSTOM_MOTION_SENSOR_GetAxes(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO, &acc_value);
-	data_in.Acc[0] = (float) acc_value.x / 1000;
-	data_in.Acc[1] = (float) acc_value.y / 1000;
-	data_in.Acc[2] = (float) acc_value.z / 1000;
-	// Get angular rate X/Y/Z in dps
+	float dT;
+
+	CUSTOM_MOTION_SENSOR_GetAxesRaw(CUSTOM_ISM330DHCX_0, MOTION_ACCELERO, &acc_raw);
+
+	CurrentTime = HAL_GetTick();
+	dT = ((float) CurrentTime - (float) LastTime) / 1000;
+
 	CUSTOM_MOTION_SENSOR_GetAxesRaw(CUSTOM_ISM330DHCX_0, MOTION_GYRO, &gyr_raw);
-	data_in.Gyro[0] = (float) gyr_raw.x * 8.75 / 1000;
-	data_in.Gyro[1] = (float) gyr_raw.y * 8.75 / 1000;
-	data_in.Gyro[2] = (float) gyr_raw.z * 8.75 / 1000;
 
-	//MEMS_Read_GyroValue(&data_in.Gyro[0], &data_in.Gyro[1], &data_in.Gyro[2]);
-	// Gyroscope calibration algorithm update
-	MotionGC_Update(&data_in, &data_out, &bias_update);
-	// Apply correction
-	gyro_cal_x = (data_in.Gyro)[0] - data_out.GyroBiasX;
-	gyro_cal_y = (data_in.Gyro)[1] - data_out.GyroBiasY;
-	gyro_cal_z = (data_in.Gyro)[2] - data_out.GyroBiasZ;
-	x_pos += gyro_cal_x * 0.002;
+	mfx_data_in.acc[0] = (float) acc_raw.x * (ACCEL_SENSITIVITY / 1000);
+	mfx_data_in.acc[1] = (float) acc_raw.y * (ACCEL_SENSITIVITY / 1000);
+	mfx_data_in.acc[2] = (float) acc_raw.z * (ACCEL_SENSITIVITY / 1000);
+	mfx_data_in.gyro[0] = ((float) gyr_raw.x) * (GYRO_SENSITIVITY / 1000);
+	mfx_data_in.gyro[1] = (float) gyr_raw.y * (GYRO_SENSITIVITY / 1000);
+	mfx_data_in.gyro[2] = (float) gyr_raw.z * (GYRO_SENSITIVITY / 1000);
 
+	MotionFX_propagate(mfxstate, &mfx_data_out, &mfx_data_in, &dT);
+	MotionFX_update(mfxstate, &mfx_data_out, &mfx_data_in, &dT, NULL);
+	if (ENABLE_6X == 1)
+	{
+	q = mfx_data_out.rotation;
+	}
+	else
+	{
+	/* Rotation Vector in 9X */
+	q = mfx_data_out.rotation;
+	}
+	LastTime = CurrentTime;
+
+	if (is_cal_str){
+		str_sum += (mfx_data_out.rotation)[0];
+		n_str++;
+	}
+	if (!calibrating)
+		pid((mfx_data_out.rotation)[0]);
+
+}
+char MotionAC_LoadCalFromNVM (unsigned short intdataSize, unsigned int *data){
+	return 0;
+}
+char MotionAC_SaveCalInNVM (unsigned short intdataSize, unsigned int *data){
+	return 0;
 }
 /* USER CODE END 4 */
 

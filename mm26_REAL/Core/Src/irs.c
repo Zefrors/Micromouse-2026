@@ -2,10 +2,9 @@
  * irs.c
  */
 
-#include "main.h"
 #include "irs.h"
 #include "delay.h"
-
+#define IR_THRESH 500
 // This is the buffer that will get filled up with all the measurements
 uint16_t adc_buf[NUM_SAMPLES];
 // "boolean" variable to keep say when the ADC has finished filling up the buffer
@@ -29,22 +28,25 @@ uint16_t readIR(IR ir)
  */
 uint16_t readLeftIR(void)
 {
-
+	if (analogRead(IR_LEFT) < IR_THRESH)
+		return 1;
+	return 0;
 }
 
-uint16_t readFrontLeftIR(void)
+uint16_t readFrontIR(void)
 {
-
-}
-
-uint16_t readFrontRightIR(void)
-{
+	if (analogRead(IR_FRONT) < IR_THRESH)
+		return 1;
+	return 0;
 
 }
 
 
 uint16_t readRightIR(void)
 {
+	if (analogRead(IR_RIGHT) < IR_THRESH)
+		return 1;
+	return 0;
 
 }
 

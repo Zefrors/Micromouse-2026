@@ -57,6 +57,10 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 ADC_HandleTypeDef* Get_HADC1_Ptr(void);
 void updateGyro();
+void updateError(int16_t e);
+char MotionAC_LoadCalFromNVM (unsigned short intdataSize, unsigned int *data);
+char MotionAC_SaveCalInNVM (unsigned short intdataSize, unsigned int *data);
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -66,8 +70,8 @@ void updateGyro();
 #define OLED_DC_GPIO_Port GPIOC
 #define OLED_MOSI_Pin GPIO_PIN_3
 #define OLED_MOSI_GPIO_Port GPIOC
-#define IR_IN_L_DIAG_Pin GPIO_PIN_0
-#define IR_IN_L_DIAG_GPIO_Port GPIOA
+#define ENC1_A_Pin GPIO_PIN_0
+#define ENC1_A_GPIO_Port GPIOA
 #define ENC1_B_Pin GPIO_PIN_1
 #define ENC1_B_GPIO_Port GPIOA
 #define USART_TX_Pin GPIO_PIN_2
@@ -108,8 +112,6 @@ void updateGyro();
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
-#define ENC1_A_Pin GPIO_PIN_15
-#define ENC1_A_GPIO_Port GPIOA
 #define Gyro_SCK_Pin GPIO_PIN_10
 #define Gyro_SCK_GPIO_Port GPIOC
 #define Gyro_MISO_Pin GPIO_PIN_11

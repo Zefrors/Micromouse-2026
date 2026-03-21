@@ -1,0 +1,12 @@
+../Core/Src/solver.c:29:8:solver	8	static
+../Core/Src/solver.c:33:8:leftWallFollower	8	static
+../Core/Src/solver.c:42:6:recomputeFlood	2176	static
+../Core/Src/solver.c:77:6:displayFlood	24	static
+../Core/Src/solver.c:86:6:floodToCenter	48	static
+../Core/Src/solver.c:93:6:floodToStart	16	static
+../Core/Src/solver.c:101:6:updatePosition	4	static
+../Core/Src/solver.c:109:6:updateDirLeft	4	static
+../Core/Src/solver.c:110:6:updateDirRight	4	static
+../Core/Src/solver.c:113:5:neighborValue	24	static
+../Core/Src/solver.c:125:5:senseWalls	104	static
+../Core/Src/solver.c:167:8:floodFill	56	static

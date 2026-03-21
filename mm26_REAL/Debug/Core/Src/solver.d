@@ -1,4 +1,5 @@
-Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
+Core/Src/solver.o: ../Core/Src/solver.c ../Core/Src/solver.h \
+ ../Core/Inc/irs.h ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h \
  ../Core/Inc/stm32l4xx_hal_conf.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_rcc.h \
@@ -34,22 +35,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim_ex.h \
  ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h \
- ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h \
- ../X-CUBE-MEMS1/Target/custom_motion_sensors.h \
- ../X-CUBE-MEMS1/Target/custom_mems_conf.h \
- ../Core/Inc/stm32l4xx_nucleo_bus.h ../Core/Inc/stm32l4xx_nucleo_conf.h \
- ../Core/Inc/stm32l4xx_nucleo_errno.h \
- ../Core/Inc/stm32l4xx_nucleo_errno.h \
- ../Drivers/BSP/Components/Common/motion_sensor.h \
- ../Drivers/BSP/Components/ism330dhcx/ism330dhcx.h \
- ../Drivers/BSP/Components/ism330dhcx/ism330dhcx_reg.h ../OLED/ssd1306.h \
- ../OLED/ssd1306_conf.h ../OLED/ssd1306_fonts.h ../OLED/ssd1306.h \
- ../Core/Inc/itoa.h ../Core/Inc/ftoa.h ../Core/Inc/motors.h \
- ../Core/Inc/main.h ../Core/Inc/delay.h ../Core/Inc/irs.h \
- C:/Users/james/Documents/micromouse/mm26_REAL/Middlewares/ST/STM32_MotionGC_Library/Inc/motion_gc.h \
- C:/Users/james/Documents/micromouse/mm26_REAL/Middlewares/ST/STM32_MotionFX_Library/Inc/motion_fx.h \
- C:/Users/james/Documents/micromouse/mm26_REAL/Middlewares/ST/STM32_MotionAC_Library/Inc/motion_ac.h \
- ../Core/Src/solver.h ../Core/Inc/systick.h
+ ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h
+../Core/Src/solver.h:
+../Core/Inc/irs.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:
 ../Core/Inc/stm32l4xx_hal_conf.h:
@@ -87,27 +75,3 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_tim_ex.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart.h:
 ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_uart_ex.h:
-../X-CUBE-MEMS1/Target/custom_motion_sensors.h:
-../X-CUBE-MEMS1/Target/custom_mems_conf.h:
-../Core/Inc/stm32l4xx_nucleo_bus.h:
-../Core/Inc/stm32l4xx_nucleo_conf.h:
-../Core/Inc/stm32l4xx_nucleo_errno.h:
-../Core/Inc/stm32l4xx_nucleo_errno.h:
-../Drivers/BSP/Components/Common/motion_sensor.h:
-../Drivers/BSP/Components/ism330dhcx/ism330dhcx.h:
-../Drivers/BSP/Components/ism330dhcx/ism330dhcx_reg.h:
-../OLED/ssd1306.h:
-../OLED/ssd1306_conf.h:
-../OLED/ssd1306_fonts.h:
-../OLED/ssd1306.h:
-../Core/Inc/itoa.h:
-../Core/Inc/ftoa.h:
-../Core/Inc/motors.h:
-../Core/Inc/main.h:
-../Core/Inc/delay.h:
-../Core/Inc/irs.h:
-C:/Users/james/Documents/micromouse/mm26_REAL/Middlewares/ST/STM32_MotionGC_Library/Inc/motion_gc.h:
-C:/Users/james/Documents/micromouse/mm26_REAL/Middlewares/ST/STM32_MotionFX_Library/Inc/motion_fx.h:
-C:/Users/james/Documents/micromouse/mm26_REAL/Middlewares/ST/STM32_MotionAC_Library/Inc/motion_ac.h:
-../Core/Src/solver.h:
-../Core/Inc/systick.h:

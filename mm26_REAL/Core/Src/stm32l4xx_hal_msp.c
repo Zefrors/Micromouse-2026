@@ -117,21 +117,14 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     /* Peripheral clock enable */
     __HAL_RCC_ADC_CLK_ENABLE();
 
-    __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**ADC1 GPIO Configuration
-    PA0     ------> ADC1_IN5
     PC4     ------> ADC1_IN13
     PC5     ------> ADC1_IN14
     PB0     ------> ADC1_IN15
     PB1     ------> ADC1_IN16
     */
-    GPIO_InitStruct.Pin = IR_IN_L_DIAG_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG_ADC_CONTROL;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(IR_IN_L_DIAG_GPIO_Port, &GPIO_InitStruct);
-
     GPIO_InitStruct.Pin = IR_IN_R_DIAG_Pin|IR_IN_LEFT_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG_ADC_CONTROL;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -185,14 +178,11 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     __HAL_RCC_ADC_CLK_DISABLE();
 
     /**ADC1 GPIO Configuration
-    PA0     ------> ADC1_IN5
     PC4     ------> ADC1_IN13
     PC5     ------> ADC1_IN14
     PB0     ------> ADC1_IN15
     PB1     ------> ADC1_IN16
     */
-    HAL_GPIO_DeInit(IR_IN_L_DIAG_GPIO_Port, IR_IN_L_DIAG_Pin);
-
     HAL_GPIO_DeInit(GPIOC, IR_IN_R_DIAG_Pin|IR_IN_LEFT_Pin);
 
     HAL_GPIO_DeInit(GPIOB, IR_IN_FRONT_Pin|IR_IN_R_Pin);
@@ -369,10 +359,10 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef* htim_encoder)
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**TIM2 GPIO Configuration
+    PA0     ------> TIM2_CH1
     PA1     ------> TIM2_CH2
-    PA15 (JTDI)     ------> TIM2_CH1
     */
-    GPIO_InitStruct.Pin = ENC1_B_Pin|ENC1_A_Pin;
+    GPIO_InitStruct.Pin = ENC1_A_Pin|ENC1_B_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -504,10 +494,10 @@ void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* htim_encoder)
     __HAL_RCC_TIM2_CLK_DISABLE();
 
     /**TIM2 GPIO Configuration
+    PA0     ------> TIM2_CH1
     PA1     ------> TIM2_CH2
-    PA15 (JTDI)     ------> TIM2_CH1
     */
-    HAL_GPIO_DeInit(GPIOA, ENC1_B_Pin|ENC1_A_Pin);
+    HAL_GPIO_DeInit(GPIOA, ENC1_A_Pin|ENC1_B_Pin);
 
     /* USER CODE BEGIN TIM2_MspDeInit 1 */
 

@@ -8,6 +8,11 @@
 #define GET_MR_ENC() TIM2->CNT
 #define GET_ML_ENC() TIM3->CNT
 
+
+#define ACCEL_THRESH 100
+int16_t lastRightVal, lastLeftVal;
+
+
 void setMotorEnc(motor side, int16_t encVal){
 	if (side == right){
 		GET_MR_ENC() = encVal;
@@ -27,28 +32,22 @@ int16_t getMotorEnc(motor side){
 }
 
 void setMotorSpeed(motor side, uint16_t speed, direction dir){
-	if (side == left)
-	{	if (dir == forward)
-			{ 
+	if (side == left){
+		if (dir == forward){
 				SET_MLB(0);
 				SET_MLF(speed);
-				
-
-			}
-		if (dir == back)
-			{
-				SET_MLF(0);
-				SET_MLB(speed);
-			}
-	}
-	if (side == right)
-		{if (dir == forward)
-				{ 	SET_MRB(0);
-					SET_MRF(speed);
-					
 				}
-			if (dir == back)
-				{
+		if (dir == back){
+				SET_MLB(speed);
+				lastLeftVal = speed;
+				}
+	}
+	if (side == right){
+		if (dir == forward){
+			SET_MRB(0);
+			SET_MRF(speed);
+			}
+			if (dir == back){
 					SET_MRF(0);
 					SET_MRB(speed);
 				}	

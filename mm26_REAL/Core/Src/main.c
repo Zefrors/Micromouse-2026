@@ -96,8 +96,8 @@ int16_t left_counts = 0;
 int16_t right_counts = 0;
 char ret;
 char salutations[] = "HI!";
-char xline[] = "FRONT: ";
-char yline[] = "LEFT: ";
+char xline[] = "VALUE: ";
+char yline[] = "ENC COUNTS: ";
 char zline[] = "RIGHT: ";
 char empty[] = "                ";
 char buffer[20];
@@ -233,7 +233,7 @@ int main(void)
   (void)MotionAC_SetKnobs(&acc_knobs);
   */
 //ssd1306_DrawPixel(1, 1, White);
-  while(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13)){}
+  while(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13)){} // wait for blue button
   if (ENABLE_6X == 1)
   {
 	  MotionFX_enable_6X(mfxstate, MFX_ENGINE_ENABLE);
@@ -245,10 +245,10 @@ int main(void)
   ssd1306_SetCursor(0,0);
   ret = ssd1306_WriteString(salutations, Font_7x10, White);
   ssd1306_UpdateScreen();
-  HAL_Delay(20000);
+  HAL_Delay(5000);
   setMotorSpeed(right, 2500, back);
   setMotorSpeed(left, 2500, back);
-  HAL_Delay(1000);
+  HAL_Delay(3000);
   setMotorSpeed(right, 0, back);
   setMotorSpeed(left, 0, back);
   is_cal_str = 1;
@@ -260,15 +260,12 @@ int main(void)
   calibrating = 0;
   HAL_Delay(2400);
   center(straight_angle);
+  //moveOne(straight_angle);
   HAL_Delay(2500);
-  straight_angle += 90;
-  if (straight_angle > 360)
-	  straight_angle -= 360;
-  HAL_Delay(2500);
-  moveOne(straight_angle);
   while (1)
   {
 	  // SOLVER CODE BEGIN
+
 	  switch(floodFill()){
 		  case(IDLE): {break;}
 		  case(FORWARD): {moveOne(straight_angle); break;}
@@ -281,105 +278,35 @@ int main(void)
 	  else if (straight_angle < -360){
 		  straight_angle += 360;
 	  }
-	  HAL_Delay(2000);
+	  HAL_Delay(3000);
+
 	  // SOLVER CODE END
+	  //setPIDGoals(straight_angle, 480); // move one tile
 
-	  //moveOne(straight_angle);
-	  /*
-	  ssd1306_SetCursor(0,0);
-	  itoa((int) getMotorEnc(right), buffer, (int) 10);
-	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
-	  memset(buffer,0,sizeof(buffer));
-	  ssd1306_SetCursor(0,10);
-	  itoa((int) getMotorEnc(left), buffer, (int) 10);
-	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
-	  memset(buffer,0,sizeof(buffer));
-	  ssd1306_UpdateScreen();
-	  setMotorSpeed(right, 10000, forward);
-	  */
-
-	  /*
-	  ssd1306_SetCursor(0,0);
-	  ret = ssd1306_WriteString(empty, Font_7x10, White);
-	  ssd1306_SetCursor(0,0);
-	  itoa(IR_VALUE, buffer, (int) 10);
-	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
-	  IR_VALUE = analogRead(IR_FRONT);
-	  ssd1306_UpdateScreen();
-	  */
-
-	//setMotorSpeed(left, 10000, back);
-
-
-	  /*
-	  for (int i = 0; i < 500; i++){
-		  x_avg += x_vals[i];
-	  }
-	  */
-	  /*
-	  ir_f = analogRead(IR_FRONT);
-	  ir_l = analogRead(IR_LEFT);
-	  ir_r = analogRead(IR_RIGHT);
-
-	  i++;
 	  ssd1306_SetCursor(0,0);
 	  ret = ssd1306_WriteString(empty, Font_7x10, White);
 	  ssd1306_SetCursor(0,0);
 	  ret = ssd1306_WriteString(xline, Font_7x10, White);
-	  //ftoa((float) (mfx_data_out.rotation)[0], buffer, (int) 10);
-	  //ftoa(iKnobs.gbias_gyro_th_sc, buffer, (int) 10);
-	  itoa(ir_f, buffer, (int) 10);
-
+	  itoa(error, buffer, (int) 10);
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
 
 	  ssd1306_SetCursor(0,10);
 	  ret = ssd1306_WriteString(empty, Font_7x10, White);
 	  ssd1306_SetCursor(0,10);
 	  ret = ssd1306_WriteString(yline, Font_7x10, White);
-	  //ftoa(error, buffer, (int) 10);
-	  //itoa((getMotorEnc(right) + getMotorEnc(left))/2, buffer, (int) 10);
-	  itoa(ir_l, buffer, (int) 10);
-
+	  itoa((getMotorEnc(right) + getMotorEnc(left))/2, buffer, (int) 10);
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
 
 	  ssd1306_SetCursor(0,20);
 	  ret = ssd1306_WriteString(empty, Font_7x10, White);
 	  ssd1306_SetCursor(0,20);
 	  ret = ssd1306_WriteString(zline, Font_7x10, White);
-	  itoa(ir_r, buffer, (int) 10);
-	  //ftoa(straight_angle, buffer, (int) 10);
-	  //ftoa((mfx_data_out.rotation)[2], buffer, (int) 10);
-	  //ftoa((float) gyr_raw.z  / 8650, buffer, (int) 10);
+	  ftoa((mfx_data_out.rotation)[0] - straight_angle, buffer, (int) 10);
 	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
 
-
 	  ssd1306_UpdateScreen();
-	  */
 	  //HAL_Delay(2500);
 
-	  /*
-	  ssd1306_SetCursor(0,10);
-	  ret = ssd1306_WriteString(empty, Font_7x10, White);
-	  ssd1306_SetCursor(0,10);
-	  ret = ssd1306_WriteString(yline, Font_7x10, White);
-	  memset(buffer,0,sizeof(buffer));
-	  itoa((int) gyr_value.y, buffer, (int) 10);
-	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
-	  ssd1306_SetCursor(0,20);
-	  ret = ssd1306_WriteString(empty, Font_7x10, White);
-	  ssd1306_SetCursor(0,20);
-	  ret = ssd1306_WriteString(zline, Font_7x10, White);
-	  memset(buffer,0,sizeof(buffer));
-	  itoa((int) gyr_value.z, buffer, (int) 10);
-	  ret = ssd1306_WriteString(buffer, Font_7x10, White);
-	  ssd1306_UpdateScreen();
-	  */
-	  //HAL_Delay(10);
-	  //setMotorSpeed(right, (uint16_t) 65535*.5, back);
-	  //setMotorSpeed(left, (uint16_t) 65535*.5, back);
-
-	  //setMotorSpeed(right, (uint16_t) 65535, back);
-	  //setMotorSpeed(left, (uint16_t) 65535, back);
 
     /* USER CODE END WHILE */
 

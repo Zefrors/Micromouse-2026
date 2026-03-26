@@ -10,17 +10,17 @@
 #include "main.h"
 #define BASE_SPEED 2200
 #define kP 332 // 215
-#define kD 6
-#define kI .10 // 1
+#define kD 0
+#define kI .12 // 1
 #define MAX_SPEED 3199
 #define CLAMP(x) ((x > MAX_SPEED) ? MAX_SPEED : x)
 #define ABS(x) ( (x) < 0 ? (-(x)) : (x))
 #define ERROR_SIZE 1000
 #define DIST_ERROR_SIZE 50
-#define distkP 65
-#define distkI 0.05
+#define distkP 25
+#define distkI 0.01
 
-#define ERROR_THRESH 650
+#define ERROR_THRESH 1500
 
 int16_t prevError = 0;
 int16_t errorSum;
@@ -56,7 +56,7 @@ void encoder_reset_straight(){
 
 
 void moveOne(float angle){
-	setPIDGoals(angle, (getMotorEnc(right) + getMotorEnc(left))/2 + 467);
+	setPIDGoals(angle, (getMotorEnc(right) + getMotorEnc(left))/2 + 485);
 	Aerror = 100;
 	while ( !piDone) {}
 	//encoder_reset();
@@ -178,7 +178,7 @@ void pid(float angle){
 		setMotorSpeed(left, 0, forward);
 	}
 	prevError = Aerror;
-	updateError(errorSum);
+	updateError(distMotor);
 	errorSum -= errors[errorPtr];
 	errors[errorPtr] =  10 * Aerror;
 	errorSum += 10 * Aerror;

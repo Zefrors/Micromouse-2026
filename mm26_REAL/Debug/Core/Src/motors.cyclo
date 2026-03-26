@@ -1,3 +1,3 @@
-../Core/Src/motors.c:11:6:setMotorEnc	3
-../Core/Src/motors.c:20:9:getMotorEnc	3
-../Core/Src/motors.c:29:6:setMotorSpeed	7
+../Core/Src/motors.c:16:6:setMotorEnc	3
+../Core/Src/motors.c:25:9:getMotorEnc	3
+../Core/Src/motors.c:34:6:setMotorSpeed	7
